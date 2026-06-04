@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="JobTrackr Statistics - Detailed reports and visualisations of your job search data.">
+    <title>Statistics - JobTrackr</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --background: #030712;
+            --surface: rgba(17, 24, 39, 0.7);
+            --surface-solid: #111827;
+            --text: #f8fafc;
+            --text-light: #94a3b8;
+            --primary: #6366f1;
+            --primary-hover: #818cf8;
+            --primary-light: rgba(99, 102, 241, 0.15);
+            --border: rgba(255, 255, 255, 0.08);
+            --radius: 12px;
+            --applied-bg: rgba(99, 102, 241, 0.15);
+            --applied-text: #c7d2fe;
+            --interview-bg: rgba(245, 158, 11, 0.15);
+            --interview-text: #fde047;
+            --offer-bg: rgba(16, 185, 129, 0.15);
+            --offer-text: #a7f3d0;
+            --rejected-bg: rgba(244, 63, 94, 0.15);
+            --rejected-text: #fecdd3;
+            --danger: #f43f5e;
+            --danger-hover: #fda4af;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--background);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.12) 0px, transparent 50%),
+                radial-gradient(at 50% 0%, rgba(99, 102, 241, 0.06) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        a { text-decoration: none; color: inherit; }
+
+        /* Header */
+        header {
+            background: rgba(17, 24, 39, 0.85);
+            border-bottom: 1px solid var(--border);
+            padding: 0 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+        }
+        .header-inner { max-width: 1000px; margin: auto; display: flex; align-items: center; justify-content: space-between; height: 60px; }
+        .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--primary); }
+        .logo i { font-size: 1.2rem; }
+        .nav-links { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+        nav { display: flex; align-items: center; gap: 2px; }
+        nav a { font-size: 0.875rem; font-weight: 500; color: var(--text-light); transition: 0.2s; padding: 5px 11px; border-radius: 6px; }
+        nav a:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+        nav a.active { color: var(--primary); background: var(--primary-light); }
+        .btn-logout { background: none; border: none; color: var(--danger); cursor: pointer; font-weight: 500; font-size: 0.875rem; display: flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 6px; transition: 0.2s; margin-left: 6px; }
+        .btn-logout:hover { background: rgba(244, 63, 94, 0.1); }
+
+        /* Layout */
+        main { flex: 1; max-width: 1000px; margin: 2rem auto; padding: 0 1.5rem; width: 100%; }
+        .page-header h1 { font-size: 1.5rem; color: var(--text); font-weight: 700; letter-spacing: -0.3px; }
+        .page-header p { font-size: 0.82rem; color: var(--text-light); margin-top: 3px; margin-bottom: 1.5rem; }
+
+        /* Stat Cards */
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+        @media(min-width: 640px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media(min-width: 900px) { .stats-grid { grid-template-columns: repeat(6, 1fr); } }
+        
+        .stat-card { 
+            background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); 
+            padding: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.2); border-bottom: 3px solid var(--primary); 
+            backdrop-filter: blur(12px);
+            transition: transform 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+        .stat-card.amber { border-bottom-color: #f59e0b; }
+        .stat-card.green { border-bottom-color: #10b981; }
+        .stat-card.red { border-bottom-color: #ef4444; }
+        .stat-card.purple { border-bottom-color: #8b5cf6; }
+        .stat-label { font-size: 0.7rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; font-weight: 600; }
+        .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--text); }
+
+        /* Chart Grid */
+        .charts-row { display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1rem; }
+        @media(min-width: 768px) { .charts-row { grid-template-columns: 1fr 1fr; } }
+        .charts-row-3 { grid-template-columns: 1fr; }
+        @media(min-width: 768px) { .charts-row-3 { grid-template-columns: 1fr 2fr; } }
+
+        .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; box-shadow: 0 4px 20px rgba(0,0,0,0.2); backdrop-filter: blur(12px); }
+        .chart-title { font-size: 0.875rem; font-weight: 600; color: var(--text); margin-bottom: 0.25rem; }
+        .chart-subtitle { font-size: 0.78rem; color: var(--text-light); margin-bottom: 1rem; }
+
+        /* Funnel */
+        .funnel-item { margin-bottom: 1rem; }
+        .funnel-header { display: flex; justify-content: space-between; margin-bottom: 0.375rem; font-size: 0.875rem; font-weight: 500; }
+        .funnel-sub { font-size: 0.75rem; color: var(--text-light); }
+        .progress-track { width: 100%; height: 10px; background: rgba(3, 7, 18, 0.5); border-radius: 9999px; overflow: hidden; border: 1px solid var(--border); }
+        .progress-fill { height: 100%; border-radius: 9999px; transition: width 0.3s ease; }
+        .fill-blue { background: var(--primary); }
+        .fill-amber { background: #f59e0b; }
+        .fill-green { background: #10b981; }
+
+        .funnel-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); text-align: center; }
+        .funnel-stat-value { font-size: 1.25rem; font-weight: 700; }
+        .text-amber { color: #d97706; }
+        .text-green { color: #059669; }
+        .text-red { color: #dc2626; }
+        .funnel-stat-label { font-size: 0.7rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.05em; }
+
+        .back-link { display: flex; justify-content: flex-end; margin-top: 1.5rem; }
+        .back-link a { color: var(--primary); font-weight: 500; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .back-link a:hover { color: var(--primary-hover); }
+
+        /* Footer */
+        footer { background: var(--surface); border-top: 1px solid var(--border); padding: 1.25rem; text-align: center; font-size: 0.78rem; color: var(--text-light); margin-top: auto; backdrop-filter: blur(12px); }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="header-inner">
+            <a href="dashboard.html" class="logo"><i class="fa-solid fa-briefcase"></i> JobTracker</a>
+            <div class="nav-links">
+                <nav>
+                    <a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+                    <a href="applications.html"><i class="fa-solid fa-list-check"></i> Applications</a>
+                    <a href="companies.html"><i class="fa-solid fa-building"></i> Companies</a>
+                    <a href="statistics.html" class="active"><i class="fa-solid fa-chart-bar"></i> Statistics</a>
+                    <a href="profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+                </nav>
+                <button onclick="handleLogout()" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main -->
+    <main id="main-content"></main>
+
+    <!-- Footer -->
+    <footer>
+        &copy; 2026 JobTracker &middot; All rights reserved
+    </footer>
+
+    <script>
+    /* Data & Session */
+    if (!localStorage.getItem('jt_applications')) {
+        localStorage.setItem('jt_applications', JSON.stringify([
+            { id:1,  company:'Google',          position:'Frontend Developer',   status:'Interview', date:'2025-02-15', salary:'RM 8,000',  location:'Kuala Lumpur',  type:'Full-time',  source:'LinkedIn' },
+            { id:2,  company:'Microsoft',        position:'Software Engineer',    status:'Applied',    date:'2025-02-20', salary:'RM 9,500',  location:'Remote',       type:'Full-time',  source:'Company Website' },
+            { id:3,  company:'Grab',             position:'Full Stack Developer', status:'Offer',      date:'2025-01-28', salary:'RM 7,500',  location:'Kuala Lumpur',  type:'Full-time',  source:'Referral' },
+            { id:4,  company:'Shopee',           position:'Backend Developer',    status:'Rejected',   date:'2025-01-10', salary:'RM 8,200',  location:'Singapore',    type:'Full-time',  source:'JobStreet' },
+            { id:5,  company:'Airbnb',           position:'UI/UX Engineer',       status:'Applied',    date:'2025-03-01', salary:'RM 10,000', location:'Remote',       type:'Contract',   source:'LinkedIn' },
+            { id:6,  company:'Maybank',          position:'IT Analyst',           status:'Interview',  date:'2025-02-25', salary:'RM 6,500',  location:'Kuala Lumpur',  type:'Full-time',  source:'JobStreet' },
+            { id:7,  company:'Petronas',         position:'Web Developer',        status:'Applied',    date:'2025-03-05', salary:'RM 7,000',  location:'Kuala Lumpur',  type:'Full-time',  source:'Company Website' },
+            { id:8,  company:'Telekom Malaysia', position:'Software Developer',   status:'Offer',      date:'2025-01-20', salary:'RM 6,800',  location:'Cyberjaya',    type:'Full-time',  source:'Referral' },
+            { id:9,  company:'Ninja Van',        position:'Frontend Engineer',    status:'Rejected',   date:'2025-01-05', salary:'RM 7,200',  location:'Petaling Jaya', type:'Full-time',  source:'LinkedIn' },
+            { id:10, company:'Carsome',          position:'Senior Developer',     status:'Interview',  date:'2025-02-18', salary:'RM 9,000',  location:'Kuala Lumpur',  type:'Full-time',  source:'Hired' },
+            { id:11, company:'MoEngage',         position:'React Developer',      status:'Applied',    date:'2025-03-08', salary:'RM 8,500',  location:'Remote',       type:'Full-time',  source:'LinkedIn' },
+            { id:12, company:'Favoriot',         position:'IoT Developer',        status:'Rejected',   date:'2024-12-15', salary:'RM 5,500',  location:'Kuala Lumpur',  type:'Full-time',  source:'JobStreet' }
+        ]));
+    }
+    var apps = [];
+    var chartInstances = {};
+
+    function initPage() {
+        if (!localStorage.getItem('jt_session')) { window.location.href = 'index.html'; return; }
+        apps = JSON.parse(localStorage.getItem('jt_applications') || '[]');
+        destroyCharts();
+        renderPage();
+    }
+
+    function destroyCharts() {
+        Object.keys(chartInstances).forEach(function(key) {
+            if (chartInstances[key]) { chartInstances[key].destroy(); delete chartInstances[key]; }
+        });
+    }
+
+    function renderPage() {
+        var total     = apps.length;
+        var applied   = apps.filter(a => a.status === 'Applied').length;
+        var interview = apps.filter(a => a.status === 'Interview').length;
+        var offer     = apps.filter(a => a.status === 'Offer').length;
+        var rejected  = apps.filter(a => a.status === 'Rejected').length;
+        var respRate  = total > 0 ? Math.round(((interview + offer + rejected) / total) * 100) : 0;
+
+        var monthlyData  = {};
+        apps.forEach(a => { var m = a.date.substring(0, 7); monthlyData[m] = (monthlyData[m] || 0) + 1; });
+        var sortedMonths = Object.keys(monthlyData).sort();
+        var monthLabels  = sortedMonths.map(m => { var p = m.split('-'); return new Date(p[0], p[1] - 1).toLocaleDateString('en-MY', { month:'short', year:'2-digit' }); });
+
+        var sourceData   = {};
+        apps.forEach(a => { sourceData[a.source] = (sourceData[a.source] || 0) + 1; });
+        var sourceLabels = Object.keys(sourceData);
+
+        var locationData   = {};
+        apps.forEach(a => { locationData[a.location] = (locationData[a.location] || 0) + 1; });
+        var locationLabels = Object.keys(locationData);
+
+        var typeData   = {};
+        apps.forEach(a => { typeData[a.type] = (typeData[a.type] || 0) + 1; });
+        var typeLabels = Object.keys(typeData);
+
+        var reachedInterview = interview + offer;
+        var interviewRate  = total > 0 ? Math.round((reachedInterview / total) * 100) : 0;
+        var offerRate      = total > 0 ? Math.round((offer / total) * 100) : 0;
+        var rejectionRate  = total > 0 ? Math.round((rejected / total) * 100) : 0;
+        var funnelIntPct   = total > 0 ? Math.round((reachedInterview / total) * 100) : 0;
+        var funnelOfferPct = reachedInterview > 0 ? Math.round((offer / reachedInterview) * 100) : 0;
+
+        document.getElementById('main-content').innerHTML = `
+        <div class="page-header">
+            <h1>Statistics & Reports</h1>
+            <p>Detailed analytics of your job search performance</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <p class="stat-label">Total</p>
+                <p class="stat-value">${total}</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">Applied</p>
+                <p class="stat-value">${applied}</p>
+            </div>
+            <div class="stat-card amber">
+                <p class="stat-label">Interviews</p>
+                <p class="stat-value">${interview}</p>
+            </div>
+            <div class="stat-card green">
+                <p class="stat-label">Offers</p>
+                <p class="stat-value">${offer}</p>
+            </div>
+            <div class="stat-card red">
+                <p class="stat-label">Rejected</p>
+                <p class="stat-value">${rejected}</p>
+            </div>
+            <div class="stat-card purple">
+                <p class="stat-label">Resp. Rate</p>
+                <p class="stat-value">${respRate}%</p>
+            </div>
+        </div>
+
+        <div class="charts-row">
+            <div class="chart-card">
+                <h2 class="chart-title">Status Distribution</h2>
+                <p class="chart-subtitle">Proportion of each application status</p>
+                <div style="max-height:300px; display:flex; justify-content:center;"><canvas id="chart-doughnut"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <h2 class="chart-title">Application Trend</h2>
+                <p class="chart-subtitle">Monthly application volume over time</p>
+                <div style="max-height:300px;"><canvas id="chart-line"></canvas></div>
+            </div>
+        </div>
+
+        <div class="charts-row">
+            <div class="chart-card">
+                <h2 class="chart-title">Applications by Source</h2>
+                <p class="chart-subtitle">Where you found job listings</p>
+                <div style="max-height:300px;"><canvas id="chart-source"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <h2 class="chart-title">Applications by Location</h2>
+                <p class="chart-subtitle">Geographic distribution of applications</p>
+                <div style="max-height:300px;"><canvas id="chart-location"></canvas></div>
+            </div>
+        </div>
+
+        <div class="charts-row charts-row-3">
+            <div class="chart-card">
+                <h2 class="chart-title">By Job Type</h2>
+                <p class="chart-subtitle">Employment type breakdown</p>
+                <div style="max-height:260px; display:flex; justify-content:center;"><canvas id="chart-type"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <h2 class="chart-title">Conversion Funnel</h2>
+                <p class="chart-subtitle">From application to offer</p>
+                
+                <div class="funnel-item">
+                    <div class="funnel-header"><span>Applied</span><span class="funnel-sub">${total} of ${total}</span></div>
+                    <div class="progress-track"><div class="progress-fill fill-blue" style="width:100%"></div></div>
+                </div>
+                <div class="funnel-item">
+                    <div class="funnel-header"><span>Interview</span><span class="funnel-sub">${reachedInterview} of ${total} (${funnelIntPct}%)</span></div>
+                    <div class="progress-track"><div class="progress-fill fill-amber" style="width:${funnelIntPct}%"></div></div>
+                </div>
+                <div class="funnel-item">
+                    <div class="funnel-header"><span>Offer</span><span class="funnel-sub">${offer} of ${reachedInterview} (${funnelOfferPct}%)</span></div>
+                    <div class="progress-track"><div class="progress-fill fill-green" style="width:${funnelOfferPct}%"></div></div>
+                </div>
+
+                <div class="funnel-stats">
+                    <div><p class="funnel-stat-value text-amber">${interviewRate}%</p><p class="funnel-stat-label">Interview Rate</p></div>
+                    <div><p class="funnel-stat-value text-green">${offerRate}%</p><p class="funnel-stat-label">Offer Rate</p></div>
+                    <div><p class="funnel-stat-value text-red">${rejectionRate}%</p><p class="funnel-stat-label">Rejection Rate</p></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="back-link">
+            <a href="dashboard.html"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+        </div>`;
+
+        createCharts(applied, interview, offer, rejected, sortedMonths, monthLabels, monthlyData, sourceLabels, sourceData, locationLabels, locationData, typeLabels, typeData);
+    }
+
+    function createCharts(applied, interview, offer, rejected, sortedMonths, monthLabels, monthlyData, sourceLabels, sourceData, locationLabels, locationData, typeLabels, typeData) {
+        
+        var tt = { backgroundColor: '#111827', titleColor: '#f8fafc', bodyColor: '#94a3b8', borderColor: 'rgba(255, 255, 255, 0.1)', borderWidth: 1, cornerRadius: 8, padding: 10, titleFont: { family: 'Inter', weight: '600' }, bodyFont: { family: 'Inter' } };
+        var legendOpts = { position: 'bottom', labels: { color: '#94a3b8', font: { size: 11, family: 'Inter' }, padding: 14, usePointStyle: true, pointStyleWidth: 8 } };
+        var axisBase = { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8', font: { size: 11, family: 'Inter' } }, border: { display: false } };
+        var yAxis = { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8', font: { size: 11, family: 'Inter' }, stepSize: 1 }, border: { display: false }, beginAtZero: true };
+
+        // 1. Doughnut
+        chartInstances.doughnut = new Chart(document.getElementById('chart-doughnut'), {
+            type: 'doughnut',
+            data: { labels: ['Applied','Interview','Offer','Rejected'], datasets: [{ data: [applied, interview, offer, rejected], backgroundColor: ['#6366f1','#f59e0b','#10b981','#ef4444'], borderWidth: 0, hoverOffset: 8 }] },
+            options: { responsive: true, maintainAspectRatio: true, cutout: '65%', plugins: { legend: legendOpts, tooltip: tt }, onClick: (e, el) => { if(el.length) window.location.href = 'applications.html?filter=' + ['applied','interview','offer','rejected'][el[0].index]; } }
+        });
+
+        // 2. Line
+        chartInstances.line = new Chart(document.getElementById('chart-line'), {
+            type: 'line',
+            data: { labels: monthLabels, datasets: [{ label: 'Applications', data: sortedMonths.map(m => monthlyData[m]), borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.1)', fill: true, tension: 0.4, pointBackgroundColor: '#6366f1', pointRadius: 5, pointHoverRadius: 7 }] },
+            options: { responsive: true, maintainAspectRatio: true, scales: { x: axisBase, y: yAxis }, plugins: { legend: { display: false }, tooltip: tt } }
+        });
+
+        // 3. Horizontal Bar (Source)
+        chartInstances.source = new Chart(document.getElementById('chart-source'), {
+            type: 'bar',
+            data: { labels: sourceLabels, datasets: [{ label: 'Count', data: sourceLabels.map(s => sourceData[s]), backgroundColor: ['#6366f1','#f59e0b','#8b5cf6','#10b981','#06b6d4'], borderRadius: 6, borderSkipped: false }] },
+            options: { responsive: true, maintainAspectRatio: true, indexAxis: 'y', scales: { x: yAxis, y: axisBase }, plugins: { legend: { display: false }, tooltip: tt } }
+        });
+
+        // 4. Vertical Bar (Location)
+        chartInstances.location = new Chart(document.getElementById('chart-location'), {
+            type: 'bar',
+            data: { labels: locationLabels, datasets: [{ label: 'Count', data: locationLabels.map(l => locationData[l]), backgroundColor: '#6366f1', hoverBackgroundColor: '#818cf8', borderRadius: 6, borderSkipped: false, barPercentage: 0.6 }] },
+            options: { responsive: true, maintainAspectRatio: true, scales: { x: axisBase, y: yAxis }, plugins: { legend: { display: false }, tooltip: tt } }
+        });
+
+        // 5. Polar Area (Type)
+        var typeColors = ['#6366f1','#f59e0b','#8b5cf6','#06b6d4'];
+        chartInstances.type = new Chart(document.getElementById('chart-type'), {
+            type: 'polarArea',
+            data: { labels: typeLabels, datasets: [{ data: typeLabels.map(t => typeData[t]), backgroundColor: typeColors.map(c => c + 'cc'), borderColor: typeColors, borderWidth: 1 }] },
+            options: { responsive: true, maintainAspectRatio: true, scales: { r: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { display: false }, angleLines: { color: 'rgba(255, 255, 255, 0.05)' }, pointLabels: { color: '#94a3b8' }, beginAtZero: true } }, plugins: { legend: legendOpts, tooltip: tt } }
+        });
+    }
+
+    function handleLogout() { localStorage.removeItem('jt_session'); window.location.href = 'index.html'; }
+
+    window.addEventListener('pageshow', function(event) { if (event.persisted) initPage(); });
+    initPage();
+    </script>
+</body>
+</html>

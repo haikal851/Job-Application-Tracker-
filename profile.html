@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="JobTrackr Profile - Manage your account settings and view your activity summary.">
+    <title>Profile - JobTrackr</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --background: #030712;
+            --surface: rgba(17, 24, 39, 0.7);
+            --surface-solid: #111827;
+            --text: #f8fafc;
+            --text-light: #94a3b8;
+            --primary: #6366f1;
+            --primary-hover: #818cf8;
+            --primary-light: rgba(99, 102, 241, 0.15);
+            --border: rgba(255, 255, 255, 0.08);
+            --radius: 12px;
+            --applied-bg: rgba(99, 102, 241, 0.15);
+            --applied-text: #c7d2fe;
+            --interview-bg: rgba(245, 158, 11, 0.15);
+            --interview-text: #fde047;
+            --offer-bg: rgba(16, 185, 129, 0.15);
+            --offer-text: #a7f3d0;
+            --rejected-bg: rgba(244, 63, 94, 0.15);
+            --rejected-text: #fecdd3;
+            --danger: #f43f5e;
+            --danger-hover: #fda4af;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--background);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.12) 0px, transparent 50%),
+                radial-gradient(at 50% 0%, rgba(99, 102, 241, 0.06) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        a { text-decoration: none; color: inherit; }
+
+        /* Header */
+        header {
+            background: rgba(17, 24, 39, 0.85);
+            border-bottom: 1px solid var(--border);
+            padding: 0 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+        }
+        .header-inner { max-width: 1000px; margin: auto; display: flex; align-items: center; justify-content: space-between; height: 60px; }
+        .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--primary); }
+        .logo i { font-size: 1.2rem; }
+        .nav-links { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+        nav { display: flex; align-items: center; gap: 2px; }
+        nav a { font-size: 0.875rem; font-weight: 500; color: var(--text-light); transition: 0.2s; padding: 5px 11px; border-radius: 6px; }
+        nav a:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+        nav a.active { color: var(--primary); background: var(--primary-light); }
+        .btn-logout { background: none; border: none; color: var(--danger); cursor: pointer; font-weight: 500; font-size: 0.875rem; display: flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 6px; transition: 0.2s; margin-left: 6px; }
+        .btn-logout:hover { background: rgba(244, 63, 94, 0.1); }
+
+        /* Layout */
+        main { flex: 1; max-width: 800px; margin: 2rem auto; padding: 0 1.5rem; width: 100%; }
+        .page-header h1 { font-size: 1.5rem; color: var(--text); font-weight: 700; letter-spacing: -0.3px; }
+        .page-header p { font-size: 0.82rem; color: var(--text-light); margin-top: 3px; margin-bottom: 1.5rem; }
+
+        /* Profile Header */
+        .profile-card { 
+            background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); 
+            padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.2); margin-bottom: 1.5rem; 
+            display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1.25rem; 
+            backdrop-filter: blur(12px);
+        }
+        @media(min-width: 640px) { .profile-card { flex-direction: row; text-align: left; align-items: flex-start; } }
+        
+        .profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--primary-light); border: 2px solid var(--primary); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 700; flex-shrink: 0; }
+        .profile-info h2 { font-size: 1.25rem; font-weight: 700; color: var(--text); }
+        .profile-email { font-size: 0.875rem; color: var(--text-light); margin-top: 2px; }
+        .profile-title { font-size: 0.875rem; color: var(--primary); font-weight: 500; margin-top: 4px; }
+        .profile-meta { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 0.75rem; font-size: 0.82rem; color: var(--text-light); }
+        .profile-meta i { margin-right: 4px; font-size: 0.7rem; }
+        .profile-bio { font-size: 0.875rem; color: var(--text-light); line-height: 1.5; margin-top: 0.75rem; max-width: 500px; }
+
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+        @media(min-width: 640px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
+        .stat-box { 
+            background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); 
+            padding: 1rem; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.2); border-top: 3px solid var(--primary); 
+            backdrop-filter: blur(12px);
+        }
+        .stat-box.amber { border-top-color: #f59e0b; }
+        .stat-box.green { border-top-color: #10b981; }
+        .stat-box.red { border-top-color: #ef4444; }
+        .stat-value { font-size: 1.5rem; font-weight: 700; }
+        .stat-value.text-amber { color: #d97706; }
+        .stat-value.text-green { color: #059669; }
+        .stat-value.text-red { color: #dc2626; }
+        .stat-label { font-size: 0.7rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; font-weight: 600; }
+
+        /* Quick Links */
+        .quick-links { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+        .quick-link { display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 500; color: var(--text-light); background: var(--surface); border: 1px solid var(--border); padding: 7px 14px; border-radius: 6px; transition: 0.2s; backdrop-filter: blur(12px); }
+        .quick-link:hover { color: var(--text); border-color: var(--primary); background: var(--primary-light); }
+        .quick-link i { font-size: 0.7rem; }
+
+        /* Form Sections */
+        .form-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 20px rgba(0,0,0,0.2); backdrop-filter: blur(12px); }
+        .form-section.danger { border-color: rgba(244, 63, 94, 0.3); background: rgba(244, 63, 94, 0.03); }
+        
+        .section-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px; }
+        .section-title i { color: var(--primary); font-size: 0.85rem; }
+        .section-title.text-danger { color: var(--danger); }
+        .section-title.text-danger i { color: var(--danger); }
+
+        .form-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+        @media(min-width: 640px) { .form-grid { grid-template-columns: 1fr 1fr; } }
+        .form-group { margin-bottom: 0; }
+        .form-group.full-width { grid-column: 1 / -1; }
+        .form-group label { display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 5px; color: var(--text); }
+        
+        .form-input { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: rgba(15, 23, 42, 0.5); font-family: inherit; font-size: 0.875rem; color: var(--text); outline: none; transition: 0.2s; }
+        .form-input::placeholder { color: #475569; }
+        .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); background: var(--surface-solid); }
+        textarea.form-input { resize: none; min-height: 80px; }
+
+        .form-actions { display: flex; justify-content: flex-end; margin-top: 1.25rem; }
+        
+        .btn { border: none; padding: 9px 16px; border-radius: var(--radius); font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25); }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4); }
+        .btn-danger-outline { background: transparent; border: 1px solid rgba(244, 63, 94, 0.4); color: var(--danger); }
+        .btn-danger-outline:hover { background: rgba(244, 63, 94, 0.15); }
+
+        /* Error Display */
+        .error-box { display: none; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.2); color: var(--danger); font-size: 0.85rem; padding: 10px 14px; border-radius: var(--radius); margin-bottom: 1rem; align-items: center; gap: 8px; }
+        .error-box.show { display: flex; }
+
+        .back-link { display: flex; justify-content: flex-end; margin-top: 1.5rem; }
+        .back-link a { color: var(--primary); font-weight: 500; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .back-link a:hover { color: var(--primary-hover); }
+
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(3, 7, 18, 0.6); z-index: 100; justify-content: center; align-items: center; padding: 1rem; backdrop-filter: blur(8px); }
+        .modal-overlay.show { display: flex; }
+        .modal-box { background: var(--surface-solid); border-radius: 16px; width: 100%; max-width: 420px; padding: 1.75rem; animation: slideUp 0.2s ease; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.5); text-align: center; border: 1px solid var(--border); }
+        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-icon { width: 3.5rem; height: 3.5rem; border-radius: 50%; background: rgba(244, 63, 94, 0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: var(--danger); font-size: 1.25rem; }
+        .modal-title { font-size: 1.05rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem; }
+        .modal-desc { font-size: 0.875rem; color: var(--text-light); margin-bottom: 1.5rem; line-height: 1.5; }
+        .modal-actions { display: flex; gap: 0.75rem; }
+        .modal-actions .btn { flex: 1; justify-content: center; padding: 10px; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-outline:hover { background: rgba(255, 255, 255, 0.04); }
+        .btn-danger { background: var(--danger); color: #fff; border: none; }
+        .btn-danger:hover { background: var(--danger-hover); }
+
+        /* Footer */
+        footer { background: var(--surface); border-top: 1px solid var(--border); padding: 1.25rem; text-align: center; font-size: 0.78rem; color: var(--text-light); margin-top: auto; backdrop-filter: blur(12px); }
+
+        /* Toast */
+        #toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 200; display: flex; flex-direction: column; gap: 0.5rem; }
+        .toast { padding: 10px 16px; border-radius: var(--radius); color: #fff; font-size: 0.84rem; animation: slideUp 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.12); font-weight: 500; }
+        .toast-success { background: #059669; }
+        .toast-error { background: #e11d48; }
+        .toast-warning { background: #d97706; }
+    </style>
+</head>
+<body>
+
+    <div id="toast-container"></div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-inner">
+            <a href="dashboard.html" class="logo"><i class="fa-solid fa-briefcase"></i> JobTracker</a>
+            <div class="nav-links">
+                <nav>
+                    <a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+                    <a href="applications.html"><i class="fa-solid fa-list-check"></i> Applications</a>
+                    <a href="companies.html"><i class="fa-solid fa-building"></i> Companies</a>
+                    <a href="statistics.html"><i class="fa-solid fa-chart-bar"></i> Statistics</a>
+                    <a href="profile.html" class="active"><i class="fa-solid fa-user"></i> Profile</a>
+                </nav>
+                <button onclick="handleLogout()" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main -->
+    <main id="main-content"></main>
+
+    <!-- Footer -->
+    <footer>
+        &copy;2026 JobTracker &middot; All rights reserved
+    </footer>
+
+    <!-- Modal -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div id="modal-content" class="modal-box"></div>
+    </div>
+
+    <script>
+    /* Data & Session */
+    if (!localStorage.getItem('jt_applications')) {
+        localStorage.setItem('jt_applications', JSON.stringify([
+            { id:1,  company:'Google',          position:'Frontend Developer',   status:'Interview', date:'2025-02-15', salary:'RM 8,000',  location:'Kuala Lumpur',  type:'Full-time',  source:'LinkedIn' },
+            { id:2,  company:'Microsoft',        position:'Software Engineer',    status:'Applied',    date:'2025-02-20', salary:'RM 9,500',  location:'Remote',       type:'Full-time',  source:'Company Website' },
+            { id:3,  company:'Grab',             position:'Full Stack Developer', status:'Offer',      date:'2025-01-28', salary:'RM 7,500',  location:'Kuala Lumpur',  type:'Full-time',  source:'Referral' },
+            { id:4,  company:'Shopee',           position:'Backend Developer',    status:'Rejected',   date:'2025-01-10', salary:'RM 8,200',  location:'Singapore',    type:'Full-time',  source:'JobStreet' },
+            { id:5,  company:'Airbnb',           position:'UI/UX Engineer',       status:'Applied',    date:'2025-03-01', salary:'RM 10,000', location:'Remote',       type:'Contract',   source:'LinkedIn' },
+            { id:6,  company:'Maybank',          position:'IT Analyst',           status:'Interview',  date:'2025-02-25', salary:'RM 6,500',  location:'Kuala Lumpur',  type:'Full-time',  source:'JobStreet' },
+            { id:7,  company:'Petronas',         position:'Web Developer',        status:'Applied',    date:'2025-03-05', salary:'RM 7,000',  location:'Kuala Lumpur',  type:'Full-time',  source:'Company Website' },
+            { id:8,  company:'Telekom Malaysia', position:'Software Developer',   status:'Offer',      date:'2025-01-20', salary:'RM 6,800',  location:'Cyberjaya',    type:'Full-time',  source:'Referral' },
+            { id:9,  company:'Ninja Van',        position:'Frontend Engineer',    status:'Rejected',   date:'2025-01-05', salary:'RM 7,200',  location:'Petaling Jaya', type:'Full-time',  source:'LinkedIn' },
+            { id:10, company:'Carsome',          position:'Senior Developer',     status:'Interview',  date:'2025-02-18', salary:'RM 9,000',  location:'Kuala Lumpur',  type:'Full-time',  source:'Hired' },
+            { id:11, company:'MoEngage',         position:'React Developer',      status:'Applied',    date:'2025-03-08', salary:'RM 8,500',  location:'Remote',       type:'Full-time',  source:'LinkedIn' },
+            { id:12, company:'Favoriot',         position:'IoT Developer',        status:'Rejected',   date:'2024-12-15', salary:'RM 5,500',  location:'Kuala Lumpur',  type:'Full-time',  source:'JobStreet' }
+        ]));
+    }
+    if (!localStorage.getItem('jt_session')) { window.location.href = 'index.html'; }
+
+    var currentUser = null;
+    var profile     = null;
+    var apps        = [];
+
+    function initPage() {
+        var session = localStorage.getItem('jt_session');
+        if (!session) { window.location.href = 'index.html'; return; }
+        currentUser = JSON.parse(session);
+
+        if (!localStorage.getItem('jt_profile')) {
+            localStorage.setItem('jt_profile', JSON.stringify({
+                phone: '+60 12-345 6789',
+                location: 'Kuala Lumpur, Malaysia',
+                bio: 'A passionate software developer looking for exciting opportunities in web development and frontend engineering.',
+                jobTitle: 'Software Developer',
+                website: 'https://myportfolio.com'
+            }));
+        }
+        profile = JSON.parse(localStorage.getItem('jt_profile'));
+        apps = JSON.parse(localStorage.getItem('jt_applications') || '[]');
+        renderPage();
+    }
+
+    function renderPage() {
+        var total     = apps.length;
+        var interview = apps.filter(a => a.status === 'Interview').length;
+        var offer     = apps.filter(a => a.status === 'Offer').length;
+        var rejected  = apps.filter(a => a.status === 'Rejected').length;
+
+        document.getElementById('main-content').innerHTML = `
+        <div class="page-header">
+            <h1>Profile</h1>
+            <p>Manage your account settings and preferences</p>
+        </div>
+
+        <div class="profile-card">
+            <div class="profile-avatar">${currentUser.name.charAt(0).toUpperCase()}</div>
+            <div class="profile-info">
+                <h2 id="display-name">${currentUser.name}</h2>
+                <p id="display-email" class="profile-email">${currentUser.email}</p>
+                <p id="display-title" class="profile-title">${profile.jobTitle || 'No title set'}</p>
+                <div class="profile-meta">
+                    <span><i class="fa-solid fa-location-dot"></i>${profile.location || 'Not set'}</span>
+                    <span><i class="fa-solid fa-phone"></i>${profile.phone || 'Not set'}</span>
+                    ${profile.website ? '<span><i class="fa-solid fa-globe"></i>' + profile.website + '</span>' : ''}
+                </div>
+                <p id="display-bio" class="profile-bio">${profile.bio || 'No bio yet.'}</p>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-box">
+                <p class="stat-value">${total}</p>
+                <p class="stat-label">Total Apps</p>
+            </div>
+            <div class="stat-box amber">
+                <p class="stat-value text-amber">${interview}</p>
+                <p class="stat-label">Interviews</p>
+            </div>
+            <div class="stat-box green">
+                <p class="stat-value text-green">${offer}</p>
+                <p class="stat-label">Offers</p>
+            </div>
+            <div class="stat-box red">
+                <p class="stat-value text-red">${rejected}</p>
+                <p class="stat-label">Rejected</p>
+            </div>
+        </div>
+
+        <div class="quick-links">
+            <a href="applications.html" class="quick-link"><i class="fa-solid fa-list-check"></i>View Applications</a>
+            <a href="statistics.html" class="quick-link"><i class="fa-solid fa-chart-bar"></i>View Statistics</a>
+        </div>
+
+        <div class="form-section">
+            <h3 class="section-title"><i class="fa-solid fa-user-pen"></i>Personal Information</h3>
+            <form id="profile-form" onsubmit="saveProfile(event)">
+                <div class="form-grid">
+                    <div class="form-group"><label>Full Name</label><input type="text" id="pf-name" value="${currentUser.name}" class="form-input"></div>
+                    <div class="form-group"><label>Email</label><input type="email" id="pf-email" value="${currentUser.email}" class="form-input"></div>
+                    <div class="form-group"><label>Job Title</label><input type="text" id="pf-title" value="${profile.jobTitle || ''}" placeholder="e.g. Software Developer" class="form-input"></div>
+                    <div class="form-group"><label>Phone</label><input type="tel" id="pf-phone" value="${profile.phone || ''}" placeholder="+60 12-345 6789" class="form-input"></div>
+                    <div class="form-group full-width"><label>Location</label><input type="text" id="pf-location" value="${profile.location || ''}" placeholder="City, Country" class="form-input"></div>
+                    <div class="form-group full-width"><label>Website / Portfolio</label><input type="url" id="pf-website" value="${profile.website || ''}" placeholder="https://myportfolio.com" class="form-input"></div>
+                    <div class="form-group full-width"><label>Bio</label><textarea id="pf-bio" placeholder="Tell us about yourself..." class="form-input">${profile.bio || ''}</textarea></div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save Changes</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="form-section">
+            <h3 class="section-title"><i class="fa-solid fa-lock"></i>Change Password</h3>
+            <form onsubmit="changePassword(event)">
+                <div class="form-grid">
+                    <div class="form-group full-width"><label>Current Password</label><input type="password" id="pw-current" required placeholder="Enter current password" class="form-input"></div>
+                    <div class="form-group"><label>New Password</label><input type="password" id="pw-new" required placeholder="Min 6 characters" class="form-input"></div>
+                    <div class="form-group"><label>Confirm New Password</label><input type="password" id="pw-confirm" required placeholder="Re-enter new password" class="form-input"></div>
+                </div>
+                <div id="pw-error" class="error-box"><i class="fa-solid fa-circle-exclamation"></i><span></span></div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-key"></i> Update Password</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="form-section danger">
+            <h3 class="section-title text-danger"><i class="fa-solid fa-triangle-exclamation"></i>Danger Zone</h3>
+            <p style="font-size:0.85rem; color:var(--text-light); margin-bottom:1rem;">Clear all your application data. This will reset the dataset to defaults. This action cannot be undone.</p>
+            <button onclick="confirmClearData()" class="btn btn-danger-outline"><i class="fa-solid fa-trash"></i> Clear All Application Data</button>
+        </div>
+
+        <div class="back-link">
+            <a href="dashboard.html"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+        </div>`;
+    }
+
+    function saveProfile(e) {
+        e.preventDefault();
+        var newName  = document.getElementById('pf-name').value.trim();
+        var newEmail = document.getElementById('pf-email').value.trim();
+
+        if (!newName || !newEmail) { showToast('Name and email are required.', 'error'); return; }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) { showToast('Please enter a valid email address.', 'error'); return; }
+
+        var users = JSON.parse(localStorage.getItem('jt_users') || '[]');
+        var sessionObj = JSON.parse(localStorage.getItem('jt_session'));
+        var oldEmail = sessionObj ? sessionObj.email : '';
+
+        // Check if the new email is already taken by another user
+        if (newEmail !== oldEmail && users.some(u => u.email === newEmail)) {
+            showToast('An account with this email already exists.', 'error');
+            return;
+        }
+
+        // Find and update in users list
+        var idx = users.findIndex(u => u.email === oldEmail);
+        if (idx !== -1) {
+            users[idx].name = newName;
+            users[idx].email = newEmail;
+            localStorage.setItem('jt_users', JSON.stringify(users));
+        }
+
+        currentUser.name  = newName;
+        currentUser.email = newEmail;
+        localStorage.setItem('jt_session', JSON.stringify(currentUser));
+
+        profile = { phone: document.getElementById('pf-phone').value.trim(), location: document.getElementById('pf-location').value.trim(), bio: document.getElementById('pf-bio').value.trim(), jobTitle: document.getElementById('pf-title').value.trim(), website: document.getElementById('pf-website').value.trim() };
+        localStorage.setItem('jt_profile', JSON.stringify(profile));
+
+        document.getElementById('display-name').textContent  = newName;
+        document.getElementById('display-email').textContent = newEmail;
+        document.getElementById('display-title').textContent = profile.jobTitle || 'No title set';
+        document.getElementById('display-bio').textContent   = profile.bio || 'No bio yet.';
+
+        showToast('Profile updated successfully!', 'success');
+    }
+
+    function changePassword(e) {
+        e.preventDefault();
+        var current = document.getElementById('pw-current').value;
+        var newPw   = document.getElementById('pw-new').value;
+        var confirm = document.getElementById('pw-confirm').value;
+        var errEl   = document.getElementById('pw-error');
+        errEl.classList.remove('show');
+
+        if (current !== currentUser.password) { errEl.querySelector('span').textContent = 'Current password is incorrect.'; errEl.classList.add('show'); return; }
+        if (newPw.length < 6) { errEl.querySelector('span').textContent = 'New password must be at least 6 characters.'; errEl.classList.add('show'); return; }
+        if (newPw !== confirm) { errEl.querySelector('span').textContent = 'New passwords do not match.'; errEl.classList.add('show'); return; }
+
+        currentUser.password = newPw;
+        localStorage.setItem('jt_session', JSON.stringify(currentUser));
+
+        var users = JSON.parse(localStorage.getItem('jt_users'));
+        var idx = users.findIndex(u => u.email === currentUser.email);
+        if (idx !== -1) { users[idx].password = newPw; localStorage.setItem('jt_users', JSON.stringify(users)); }
+
+        document.getElementById('pw-current').value = '';
+        document.getElementById('pw-new').value = '';
+        document.getElementById('pw-confirm').value = '';
+
+        showToast('Password updated successfully!', 'success');
+    }
+
+    function confirmClearData() {
+        document.getElementById('modal-content').innerHTML = `
+        <div>
+            <div class="modal-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h2 class="modal-title">Clear All Data?</h2>
+            <p class="modal-desc">This will reset all application data to the default dataset. Dashboard and Statistics pages will reflect the reset on next visit.</p>
+            <div class="modal-actions">
+                <button onclick="closeModal()" class="btn btn-outline">Cancel</button>
+                <button onclick="doClearData()" class="btn btn-danger">Clear Data</button>
+            </div>
+        </div>`;
+        openModal();
+    }
+
+    function doClearData() {
+        const defaultApps = [
+            { id:1,  company:'Google',          position:'Frontend Developer',   status:'Interview', date:'2025-02-15', salary:'RM 8,000',  location:'Kuala Lumpur',  type:'Full-time',  source:'LinkedIn' },
+            { id:2,  company:'Microsoft',        position:'Software Engineer',    status:'Applied',    date:'2025-02-20', salary:'RM 9,500',  location:'Remote',       type:'Full-time',  source:'Company Website' },
+            { id:3,  company:'Grab',             position:'Full Stack Developer', status:'Offer',      date:'2025-01-28', salary:'RM 7,500',  location:'Kuala Lumpur',  type:'Full-time',  source:'Referral' },
+            { id:4,  company:'Shopee',           position:'Backend Developer',    status:'Rejected',   date:'2025-01-10', salary:'RM 8,200',  location:'Singapore',    type:'Full-time',  source:'JobStreet' },
+            { id:5,  company:'Airbnb',           position:'UI/UX Engineer',       status:'Applied',    date:'2025-03-01', salary:'RM 10,000', location:'Remote',       type:'Contract',   source:'LinkedIn' },
+            { id:6,  company:'Maybank',          position:'IT Analyst',           status:'Interview',  date:'2025-02-25', salary:'RM 6,500',  location:'Kuala Lumpur',  type:'Full-time',  source:'JobStreet' },
+            { id:7,  company:'Petronas',         position:'Web Developer',        status:'Applied',    date:'2025-03-05', salary:'RM 7,000',  location:'Kuala Lumpur',  type:'Full-time',  source:'Company Website' },
+            { id:8,  company:'Telekom Malaysia', position:'Software Developer',   status:'Offer',      date:'2025-01-20', salary:'RM 6,800',  location:'Cyberjaya',    type:'Full-time',  source:'Referral' },
+            { id:9,  company:'Ninja Van',        position:'Frontend Engineer',    status:'Rejected',   date:'2025-01-05', salary:'RM 7,200',  location:'Petaling Jaya', type:'Full-time',  source:'LinkedIn' },
+            { id:10, company:'Carsome',          position:'Senior Developer',     status:'Interview',  date:'2025-02-18', salary:'RM 9,000',  location:'Kuala Lumpur',  type:'Full-time',  source:'LinkedIn' },
+            { id:11, company:'MoEngage',         position:'React Developer',      status:'Applied',    date:'2025-03-08', salary:'RM 8,500',  location:'Remote',       type:'Full-time',  source:'LinkedIn' },
+            { id:12, company:'Favoriot',         position:'IoT Developer',        status:'Rejected',   date:'2024-12-15', salary:'RM 5,500',  location:'Kuala Lumpur',  type:'Full-time',  source:'JobStreet' }
+        ];
+        localStorage.setItem('jt_applications', JSON.stringify(defaultApps));
+        closeModal();
+        apps = defaultApps;
+        renderPage();
+        showToast('All application data has been reset to defaults.', 'warning');
+    }
+
+    function openModal()  { document.getElementById('modal-overlay').classList.add('show'); document.body.style.overflow='hidden'; }
+    function closeModal() { document.getElementById('modal-overlay').classList.remove('show'); document.body.style.overflow=''; }
+    document.getElementById('modal-overlay').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
+    document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+
+    function showToast(msg, type) {
+        var c = document.getElementById('toast-container');
+        var t = document.createElement('div');
+        t.className = 'toast toast-' + type;
+        t.textContent = msg;
+        c.appendChild(t);
+        setTimeout(() => { t.style.opacity='0'; t.style.transition='0.3s'; setTimeout(()=>t.remove(), 300); }, 3000);
+    }
+
+    function handleLogout() { localStorage.removeItem('jt_session'); window.location.href = 'index.html'; }
+
+    window.addEventListener('pageshow', function(event) { if (event.persisted) initPage(); });
+    initPage();
+    </script>
+</body>
+</html>

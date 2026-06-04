@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="JobTrackr Dashboard - Overview of your job application progress and key metrics.">
+    <title>Dashboard - JobTrackr</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --background: #030712;
+            --surface: rgba(17, 24, 39, 0.7);
+            --surface-solid: #111827;
+            --text: #f8fafc;
+            --text-light: #94a3b8;
+            --primary: #6366f1;
+            --primary-hover: #818cf8;
+            --primary-light: rgba(99, 102, 241, 0.15);
+            --border: rgba(255, 255, 255, 0.08);
+            --radius: 12px;
+            --applied-bg: rgba(99, 102, 241, 0.15);
+            --applied-text: #c7d2fe;
+            --interview-bg: rgba(245, 158, 11, 0.15);
+            --interview-text: #fde047;
+            --offer-bg: rgba(16, 185, 129, 0.15);
+            --offer-text: #a7f3d0;
+            --rejected-bg: rgba(244, 63, 94, 0.15);
+            --rejected-text: #fecdd3;
+            --danger: #f43f5e;
+            --danger-hover: #fda4af;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--background);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.12) 0px, transparent 50%),
+                radial-gradient(at 50% 0%, rgba(99, 102, 241, 0.06) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* Header */
+        header {
+            background: rgba(17, 24, 39, 0.85);
+            border-bottom: 1px solid var(--border);
+            padding: 0 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .header-inner {
+            max-width: 1000px;
+            margin: auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .logo i {
+            font-size: 1.2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        nav a {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-light);
+            transition: 0.2s;
+            padding: 5px 11px;
+            border-radius: 6px;
+        }
+
+        nav a:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        nav a.active {
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .btn-logout {
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 11px;
+            border-radius: 6px;
+            transition: 0.2s;
+            margin-left: 6px;
+        }
+
+        .btn-logout:hover {
+            background: rgba(244, 63, 94, 0.1);
+        }
+
+        /* Layout */
+        main {
+            flex: 1;
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+            width: 100%;
+        }
+
+        .page-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .page-header h1 {
+            font-size: 1.5rem;
+            color: var(--text);
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .page-header p {
+            font-size: 0.82rem;
+            color: var(--text-light);
+            margin-top: 3px;
+        }
+
+        /* Dashboard Stats */
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media(min-width: 768px) {
+            .dashboard-stats {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .summary-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(12px);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .summary-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary-light);
+        }
+
+        .summary-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .summary-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .summary-icon {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        .icon-blue {
+            background: var(--applied-bg);
+            color: var(--applied-text);
+        }
+
+        .icon-amber {
+            background: var(--interview-bg);
+            color: var(--interview-text);
+        }
+
+        .icon-green {
+            background: var(--offer-bg);
+            color: var(--offer-text);
+        }
+
+        .icon-purple {
+            background: rgba(139, 92, 246, 0.15);
+            color: #c084fc;
+        }
+
+        .summary-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1;
+        }
+
+        .summary-desc {
+            font-size: 0.78rem;
+            color: var(--text-light);
+            margin-top: 0.25rem;
+        }
+
+        /* Charts */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media(min-width: 768px) {
+            .charts-grid {
+                grid-template-columns: 2fr 3fr;
+            }
+        }
+
+        .chart-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(12px);
+        }
+
+        .chart-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.25rem;
+        }
+
+        .chart-subtitle {
+            font-size: 0.78rem;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+        }
+
+        /* Table */
+        .table-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow-x: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(12px);
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table-header h2 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .table-header p {
+            font-size: 0.78rem;
+            color: var(--text-light);
+            margin-top: 2px;
+        }
+
+        .view-link {
+            font-size: 0.82rem;
+            color: var(--primary);
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .view-link:hover {
+            color: var(--primary-hover);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 11px 14px;
+            background: rgba(3, 7, 18, 0.4);
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 13px 14px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .hide-sm {
+            display: none;
+        }
+
+        @media(min-width: 768px) {
+            .hide-sm {
+                display: table-cell;
+            }
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .badge-Applied {
+            background: var(--applied-bg);
+            color: var(--applied-text);
+        }
+
+        .badge-Interview {
+            background: var(--interview-bg);
+            color: var(--interview-text);
+        }
+
+        .badge-Offer {
+            background: var(--offer-bg);
+            color: var(--offer-text);
+        }
+
+        .badge-Rejected {
+            background: var(--rejected-bg);
+            color: var(--rejected-text);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(3, 7, 18, 0.6);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-box {
+            background: var(--surface-solid);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 480px;
+            padding: 1.75rem;
+            animation: slideUp 0.2s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(10px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.05rem;
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: rgba(255, 255, 255, 0.06);
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            color: var(--text-light);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.15s;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: var(--text);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 1rem 0;
+        }
+
+        .info-box {
+            background: rgba(15, 23, 42, 0.4);
+            padding: 12px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .info-box p {
+            font-size: 0.72rem;
+            color: var(--text-light);
+            margin-bottom: 3px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .info-box h4 {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 1.25rem;
+            text-align: center;
+            font-size: 0.78rem;
+            color: var(--text-light);
+            margin-top: auto;
+        }
+
+        /* Toast */
+        #toast-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .toast {
+            padding: 10px 16px;
+            border-radius: var(--radius);
+            color: #fff;
+            font-size: 0.84rem;
+            animation: slideUp 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            font-weight: 500;
+        }
+
+        .toast-success {
+            background: #059669;
+        }
+
+        .toast-warning {
+            background: #d97706;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="toast-container"></div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-inner">
+            <a href="dashboard.html" class="logo"><i class="fa-solid fa-briefcase"></i> JobTracker</a>
+            <div class="nav-links">
+                <nav>
+                    <a href="dashboard.html" class="active"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+                    <a href="applications.html"><i class="fa-solid fa-list-check"></i> Applications</a>
+                    <a href="companies.html"><i class="fa-solid fa-building"></i> Companies</a>
+                    <a href="statistics.html"><i class="fa-solid fa-chart-bar"></i> Statistics</a>
+                    <a href="profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+                </nav>
+                <button onclick="handleLogout()" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i>
+                    Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main -->
+    <main id="main-content"></main>
+
+    <!-- Footer -->
+    <footer>
+        &copy; 2026 JobTracker &middot; All rights reserved
+    </footer>
+
+    <!-- Modal -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div id="modal-content" class="modal-box"></div>
+    </div>
+
+    <script>
+        /* Session & Data */
+        var currentUser = null;
+        var apps = [];
+
+        function initPage() {
+            const session = localStorage.getItem('jt_session');
+            if (!session) { window.location.href = 'index.html'; return; }
+            currentUser = JSON.parse(session);
+
+            if (!localStorage.getItem('jt_applications')) {
+                localStorage.setItem('jt_applications', JSON.stringify([
+                    { id: 1, company: 'Google', position: 'Frontend Developer', status: 'Interview', date: '2025-02-15', salary: 'RM 8,000', location: 'Kuala Lumpur', type: 'Full-time', source: 'LinkedIn' },
+                    { id: 2, company: 'Microsoft', position: 'Software Engineer', status: 'Applied', date: '2025-02-20', salary: 'RM 9,500', location: 'Remote', type: 'Full-time', source: 'Company Website' },
+                    { id: 3, company: 'Grab', position: 'Full Stack Developer', status: 'Offer', date: '2025-01-28', salary: 'RM 7,500', location: 'Kuala Lumpur', type: 'Full-time', source: 'Referral' },
+                    { id: 4, company: 'Shopee', position: 'Backend Developer', status: 'Rejected', date: '2025-01-10', salary: 'RM 8,200', location: 'Singapore', type: 'Full-time', source: 'JobStreet' },
+                    { id: 5, company: 'Airbnb', position: 'UI/UX Engineer', status: 'Applied', date: '2025-03-01', salary: 'RM 10,000', location: 'Remote', type: 'Contract', source: 'LinkedIn' },
+                    { id: 6, company: 'Maybank', position: 'IT Analyst', status: 'Interview', date: '2025-02-25', salary: 'RM 6,500', location: 'Kuala Lumpur', type: 'Full-time', source: 'JobStreet' },
+                    { id: 7, company: 'Petronas', position: 'Web Developer', status: 'Applied', date: '2025-03-05', salary: 'RM 7,000', location: 'Kuala Lumpur', type: 'Full-time', source: 'Company Website' },
+                    { id: 8, company: 'Telekom Malaysia', position: 'Software Developer', status: 'Offer', date: '2025-01-20', salary: 'RM 6,800', location: 'Cyberjaya', type: 'Full-time', source: 'Referral' },
+                    { id: 9, company: 'Ninja Van', position: 'Frontend Engineer', status: 'Rejected', date: '2025-01-05', salary: 'RM 7,200', location: 'Petaling Jaya', type: 'Full-time', source: 'LinkedIn' },
+                    { id: 10, company: 'Carsome', position: 'Senior Developer', status: 'Interview', date: '2025-02-18', salary: 'RM 9,000', location: 'Kuala Lumpur', type: 'Full-time', source: 'LinkedIn' },
+                    { id: 11, company: 'MoEngage', position: 'React Developer', status: 'Applied', date: '2025-03-08', salary: 'RM 8,500', location: 'Remote', type: 'Full-time', source: 'LinkedIn' },
+                    { id: 12, company: 'Favoriot', position: 'IoT Developer', status: 'Rejected', date: '2024-12-15', salary: 'RM 5,500', location: 'Kuala Lumpur', type: 'Full-time', source: 'JobStreet' }
+                ]));
+            }
+            apps = JSON.parse(localStorage.getItem('jt_applications'));
+            renderPage();
+        }
+
+        function renderPage() {
+            /* Calculate Stats */
+            const total = apps.length;
+            const interviews = apps.filter(a => a.status === 'Interview').length;
+            const offers = apps.filter(a => a.status === 'Offer').length;
+            const rejected = apps.filter(a => a.status === 'Rejected').length;
+            const responded = apps.filter(a => ['Interview', 'Offer', 'Rejected'].includes(a.status)).length;
+            const rate = total > 0 ? Math.round((responded / total) * 100) : 0;
+
+            /* Render HTML */
+            const main = document.getElementById('main-content');
+            main.innerHTML = `
+        <div class="page-header">
+            <h1>Dashboard</h1>
+            <p>Welcome back, ${currentUser.name.split(' ')[0]}. Here's your job search overview.</p>
+        </div>
+
+        <div class="dashboard-stats">
+            <div class="summary-card">
+                <div class="summary-header">
+                    <span class="summary-label">Total</span>
+                    <div class="summary-icon icon-blue"><i class="fa-solid fa-file-lines"></i></div>
+                </div>
+                <p class="summary-value">${total}</p>
+                <p class="summary-desc">Applications sent</p>
+            </div>
+            <div class="summary-card">
+                <div class="summary-header">
+                    <span class="summary-label">Interviews</span>
+                    <div class="summary-icon icon-amber"><i class="fa-solid fa-comments"></i></div>
+                </div>
+                <p class="summary-value">${interviews}</p>
+                <p class="summary-desc">Scheduled</p>
+            </div>
+            <div class="summary-card">
+                <div class="summary-header">
+                    <span class="summary-label">Offers</span>
+                    <div class="summary-icon icon-green"><i class="fa-solid fa-trophy"></i></div>
+                </div>
+                <p class="summary-value">${offers}</p>
+                <p class="summary-desc">Received</p>
+            </div>
+            <div class="summary-card">
+                <div class="summary-header">
+                    <span class="summary-label">Response</span>
+                    <div class="summary-icon icon-purple"><i class="fa-solid fa-chart-line"></i></div>
+                </div>
+                <p class="summary-value">${rate}%</p>
+                <p class="summary-desc">Response rate</p>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h2 class="chart-title">Application Status</h2>
+                <p class="chart-subtitle">Breakdown by current status</p>
+                <div style="max-height:260px; position:relative;"><canvas id="chart-status"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <h2 class="chart-title">Applications Over Time</h2>
+                <p class="chart-subtitle">Monthly application volume</p>
+                <div style="max-height:260px;"><canvas id="chart-monthly"></canvas></div>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <div class="table-header">
+                <div>
+                    <h2>Recent Applications</h2>
+                    <p>Your latest job applications</p>
+                </div>
+                <a href="applications.html" class="view-link">View all <i class="fa-solid fa-arrow-right" style="font-size:10px"></i></a>
+            </div>
+            <table>
+                <thead><tr>
+                    <th>Company</th>
+                    <th class="hide-sm">Position</th>
+                    <th>Status</th>
+                    <th class="hide-sm">Date</th>
+                </tr></thead>
+                <tbody>
+                    ${apps.slice(0, 5).map(a => `
+                    <tr style="cursor:pointer" onclick="showDetail(${a.id})">
+                        <td style="font-weight:600">${a.company}</td>
+                        <td class="hide-sm" style="color:var(--text-light)">${a.position}</td>
+                        <td><span class="badge badge-${a.status}">${a.status}</span></td>
+                        <td class="hide-sm" style="color:var(--text-light)">${new Date(a.date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>
+        </div>`;
+
+            /* Initialize Charts */
+            const chartOpts = {
+                tooltip: {
+                    backgroundColor: '#111827',
+                    titleColor: '#f8fafc',
+                    bodyColor: '#94a3b8',
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    padding: 10,
+                    titleFont: { family: 'Inter', weight: '600' },
+                    bodyFont: { family: 'Inter' }
+                }
+            };
+
+            // Doughnut Chart
+            new Chart(document.getElementById('chart-status'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Applied', 'Interview', 'Offer', 'Rejected'],
+                    datasets: [{
+                        data: [apps.filter(a => a.status === 'Applied').length, interviews, offers, rejected],
+                        backgroundColor: ['#6366f1', '#f59e0b', '#10b981', '#ef4444'],
+                        borderWidth: 0,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: true, cutout: '70%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 11, family: 'Inter' }, padding: 16, usePointStyle: true, pointStyleWidth: 8 } },
+                        tooltip: chartOpts.tooltip
+                    },
+                    onClick: (e, el) => { if (el.length) { window.location.href = 'applications.html?filter=' + ['applied', 'interview', 'offer', 'rejected'][el[0].index]; } }
+                }
+            });
+
+            // Bar Chart
+            const monthlyData = {};
+            apps.forEach(a => { const m = a.date.substring(0, 7); monthlyData[m] = (monthlyData[m] || 0) + 1; });
+            const sortedMonths = Object.keys(monthlyData).sort();
+            const monthLabels = sortedMonths.map(m => { const [y, mo] = m.split('-'); return new Date(y, mo - 1).toLocaleDateString('en-MY', { month: 'short', year: '2-digit' }); });
+
+            new Chart(document.getElementById('chart-monthly'), {
+                type: 'bar',
+                data: {
+                    labels: monthLabels,
+                    datasets: [{ label: 'Applications', data: sortedMonths.map(m => monthlyData[m]), backgroundColor: '#6366f1', hoverBackgroundColor: '#818cf8', borderRadius: 6, borderSkipped: false, barPercentage: 0.6 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: true,
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 11, family: 'Inter' } }, border: { display: false } },
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 11, family: 'Inter' }, stepSize: 1 }, border: { display: false } }
+                    },
+                    plugins: { legend: { display: false }, tooltip: chartOpts.tooltip }
+                }
+            });
+        }
+
+        /* Modal & Utility Functions */
+        function showDetail(id) {
+            const a = apps.find(x => x.id === id); if (!a) return;
+            document.getElementById('modal-content').innerHTML = `
+        <div>
+            <div class="modal-header">
+                <h2>${a.position}</h2>
+                <button onclick="closeModal()" class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p style="margin-bottom:12px;color:var(--text-light);font-size:0.875rem">${a.company} &nbsp;<span class="badge badge-${a.status}">${a.status}</span></p>
+            <div class="info-grid">
+                <div class="info-box"><p>Location</p><h4>${a.location}</h4></div>
+                <div class="info-box"><p>Salary</p><h4>${a.salary}</h4></div>
+                <div class="info-box"><p>Date Applied</p><h4>${new Date(a.date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}</h4></div>
+                <div class="info-box"><p>Source</p><h4>${a.source}</h4></div>
+            </div>
+        </div>`;
+            document.getElementById('modal-overlay').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() { document.getElementById('modal-overlay').classList.remove('show'); document.body.style.overflow = ''; }
+        document.getElementById('modal-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+        function handleLogout() { localStorage.removeItem('jt_session'); window.location.href = 'index.html'; }
+
+        initPage();
+    </script>
+</body>
+
+</html>

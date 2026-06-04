@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="JobTrackr Companies - Browse and explore companies you've applied to.">
+    <title>Companies - JobTrackr</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --background: #030712;
+            --surface: rgba(17, 24, 39, 0.7);
+            --surface-solid: #111827;
+            --text: #f8fafc;
+            --text-light: #94a3b8;
+            --primary: #6366f1;
+            --primary-hover: #818cf8;
+            --primary-light: rgba(99, 102, 241, 0.15);
+            --border: rgba(255, 255, 255, 0.08);
+            --radius: 12px;
+            --applied-bg: rgba(99, 102, 241, 0.15);
+            --applied-text: #c7d2fe;
+            --interview-bg: rgba(245, 158, 11, 0.15);
+            --interview-text: #fde047;
+            --offer-bg: rgba(16, 185, 129, 0.15);
+            --offer-text: #a7f3d0;
+            --rejected-bg: rgba(244, 63, 94, 0.15);
+            --rejected-text: #fecdd3;
+            --danger: #f43f5e;
+            --danger-hover: #fda4af;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--background);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.12) 0px, transparent 50%),
+                radial-gradient(at 50% 0%, rgba(99, 102, 241, 0.06) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        a { text-decoration: none; color: inherit; }
+
+        /* Header */
+        header {
+            background: rgba(17, 24, 39, 0.85);
+            border-bottom: 1px solid var(--border);
+            padding: 0 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+        }
+        .header-inner { max-width: 1000px; margin: auto; display: flex; align-items: center; justify-content: space-between; height: 60px; }
+        .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--primary); }
+        .logo i { font-size: 1.2rem; }
+        .nav-links { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+        nav { display: flex; align-items: center; gap: 2px; }
+        nav a { font-size: 0.875rem; font-weight: 500; color: var(--text-light); transition: 0.2s; padding: 5px 11px; border-radius: 6px; }
+        nav a:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+        nav a.active { color: var(--primary); background: var(--primary-light); }
+        .btn-logout { background: none; border: none; color: var(--danger); cursor: pointer; font-weight: 500; font-size: 0.875rem; display: flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 6px; transition: 0.2s; margin-left: 6px; }
+        .btn-logout:hover { background: rgba(244, 63, 94, 0.1); }
+
+        /* Layout */
+        main { flex: 1; max-width: 1000px; margin: 2rem auto; padding: 0 1.5rem; width: 100%; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+        .page-header h1 { font-size: 1.5rem; color: var(--text); font-weight: 700; letter-spacing: -0.3px; }
+        .page-header p { font-size: 0.82rem; color: var(--text-light); margin-top: 3px; }
+
+        /* Buttons */
+        .btn {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 9px 16px;
+            border-radius: var(--radius);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+        }
+        .btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+            box-shadow: none;
+        }
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.04);
+            transform: none;
+        }
+        .btn-danger {
+            background: var(--danger);
+            box-shadow: 0 4px 12px rgba(244, 63, 94, 0.25);
+        }
+        .btn-danger:hover {
+            background: var(--danger-hover);
+            box-shadow: 0 6px 16px rgba(244, 63, 94, 0.4);
+        }
+
+        /* Filters */
+        .filters { display: flex; gap: 12px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .input-group { flex: 1; min-width: 200px; position: relative; }
+        .input-group i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-light); font-size: 0.82rem; }
+        input, select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: rgba(15, 23, 42, 0.5); font-family: inherit; font-size: 0.875rem; outline: none; transition: 0.2s; color: var(--text); }
+        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); background: var(--surface-solid); }
+        .input-group input { padding-left: 36px; }
+
+        /* Grid */
+        .company-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+        @media(min-width: 640px) { .company-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media(min-width: 900px) { .company-grid { grid-template-columns: repeat(3, 1fr); } }
+
+        /* Card */
+        .company-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            transition: 0.2s;
+            cursor: pointer;
+            backdrop-filter: blur(12px);
+        }
+        .company-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary-light);
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.15);
+        }
+        .card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.75rem; }
+        .card-icon { width: 2.5rem; height: 2.5rem; border-radius: 8px; background: var(--primary-light); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--primary); font-weight: 700; font-size: 1rem; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.1); }
+        
+        .header-actions { display: flex; align-items: center; gap: 6px; }
+        .btn-star {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.05rem;
+            padding: 4px;
+            border-radius: 4px;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-star:hover {
+            background: rgba(245, 158, 11, 0.1);
+            transform: scale(1.15);
+        }
+        .star-active { color: #f59e0b; }
+        .star-inactive { color: var(--text-light); }
+
+        .card-industry { font-size: 0.75rem; font-weight: 600; color: var(--text-light); background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border); }
+        .card-title { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 0.25rem; }
+        .card-location { font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 4px; }
+        .card-desc { font-size: 0.85rem; color: var(--text-light); line-height: 1.5; margin-bottom: 1rem; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .card-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 0.75rem; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--text-light); }
+        
+        .star-on { color: #f59e0b; }
+        .star-off { color: #475569; }
+        .card-stat { margin-right: 8px; display: inline-flex; align-items: center; gap: 4px; }
+        
+        .empty-state { grid-column: 1 / -1; text-align: center; padding: 4rem 1rem; color: var(--text-light); font-size: 0.9rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); backdrop-filter: blur(12px); }
+        .empty-state i { display: block; font-size: 2rem; margin-bottom: 0.75rem; color: var(--text-light); opacity: 0.7; }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .badge-Applied { background: var(--applied-bg); color: var(--applied-text); }
+        .badge-Interview { background: var(--interview-bg); color: var(--interview-text); }
+        .badge-Offer { background: var(--offer-bg); color: var(--offer-text); }
+        .badge-Rejected { background: var(--rejected-bg); color: var(--rejected-text); }
+
+        /* Modal styling */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(3, 7, 18, 0.6);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            backdrop-filter: blur(8px);
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            background: var(--surface-solid);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 500px;
+            padding: 1.75rem;
+            animation: slideUp 0.2s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+        }
+        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+        .modal-header h2 { font-size: 1.1rem; color: var(--text); font-weight: 700; }
+        .modal-close {
+            background: rgba(255, 255, 255, 0.06); border: none; font-size: 1rem; cursor: pointer; color: var(--text-light);
+            width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: 0.15s;
+        }
+        .modal-close:hover { background: rgba(255, 255, 255, 0.12); color: var(--text); }
+        
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: var(--text-light); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+        /* Footer */
+        footer { background: var(--surface); border-top: 1px solid var(--border); padding: 1.25rem; text-align: center; font-size: 0.78rem; color: var(--text-light); margin-top: auto; backdrop-filter: blur(12px); }
+
+        /* Toast notifications */
+        #toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 200; display: flex; flex-direction: column; gap: 0.5rem; }
+        .toast { padding: 10px 16px; border-radius: var(--radius); color: #fff; font-size: 0.84rem; animation: slideUp 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.12); font-weight: 500; }
+        .toast-success { background: #059669; }
+        .toast-warning { background: #d97706; }
+    </style>
+</head>
+<body>
+
+    <div id="toast-container"></div>
+
+    <!-- Header -->
+    <header>
+        <div class="header-inner">
+            <a href="dashboard.html" class="logo"><i class="fa-solid fa-briefcase"></i> JobTracker</a>
+            <div class="nav-links">
+                <nav>
+                    <a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+                    <a href="applications.html"><i class="fa-solid fa-list-check"></i> Applications</a>
+                    <a href="companies.html" class="active"><i class="fa-solid fa-building"></i> Companies</a>
+                    <a href="statistics.html"><i class="fa-solid fa-chart-bar"></i> Statistics</a>
+                    <a href="profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+                </nav>
+                <button onclick="handleLogout()" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main -->
+    <main>
+        <div id="main-content"></div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        &copy; 2026 JobTracker &middot; All rights reserved
+    </footer>
+
+    <!-- Modal overlay container -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div id="modal-content" class="modal-box"></div>
+    </div>
+
+    <script>
+    /* Session & Data Checking */
+    if (!localStorage.getItem('jt_session')) { window.location.href = 'index.html'; }
+
+    const defaultCompanies = [
+        { name:'Google',           industry:'Technology',         location:'Kuala Lumpur',  rating:4.5, openPositions:3,  description:'Global technology leader specialising in internet services and products.', starred: false },
+        { name:'Microsoft',        industry:'Technology',         location:'Remote',        rating:4.4, openPositions:5,  description:'Multinational technology corporation producing computer software and cloud services.', starred: false },
+        { name:'Grab',             industry:'Technology',         location:'Kuala Lumpur',  rating:4.0, openPositions:8,  description:'Southeast Asia\'s leading superapp for ride-hailing, food, and payments.', starred: false },
+        { name:'Shopee',           industry:'E-Commerce',         location:'Singapore',     rating:3.8, openPositions:12, description:'Leading e-commerce platform across Southeast Asia and Taiwan.', starred: false },
+        { name:'Airbnb',           industry:'Hospitality',        location:'Remote',        rating:4.3, openPositions:2,  description:'Online marketplace for lodging, homestays, and tourism activities.', starred: false },
+        { name:'Maybank',          industry:'Banking',            location:'Kuala Lumpur',  rating:4.1, openPositions:6,  description:'Malaysia\'s largest bank by market capitalisation and assets.', starred: false },
+        { name:'Petronas',         industry:'Energy',             location:'Kuala Lumpur',  rating:4.2, openPositions:4,  description:'Malaysian national oil and gas company with global operations.', starred: false },
+        { name:'Telekom Malaysia', industry:'Telecommunications', location:'Cyberjaya',     rating:3.9, openPositions:7,  description:'National telecommunications company and leading integrated info-comm provider.', starred: false },
+        { name:'Ninja Van',        industry:'Logistics',          location:'Petaling Jaya', rating:3.7, openPositions:3,  description:'Tech-enabled logistics and parcel delivery company in Southeast Asia.', starred: false },
+        { name:'Carsome',          industry:'E-Commerce',         location:'Kuala Lumpur',  rating:3.9, openPositions:5,  description:'Southeast Asia\'s largest integrated car e-commerce platform.', starred: false },
+        { name:'MoEngage',         industry:'Technology',         location:'Remote',        rating:4.1, openPositions:2,  description:'Intelligent customer engagement and marketing automation platform.', starred: false },
+        { name:'Favoriot',         industry:'IoT',                location:'Kuala Lumpur',  rating:3.5, openPositions:1,  description:'IoT platform provider enabling smart solutions for businesses.', starred: false },
+    ];
+
+    let companies = [];
+    let apps = [];
+    let industries = [];
+
+    function initData() {
+        if (!localStorage.getItem('jt_companies')) {
+            localStorage.setItem('jt_companies', JSON.stringify(defaultCompanies));
+        }
+        companies = JSON.parse(localStorage.getItem('jt_companies'));
+        apps = JSON.parse(localStorage.getItem('jt_applications') || '[]');
+        industries = [...new Set(companies.map(c => c.industry))].sort();
+    }
+
+    initData();
+
+    let searchQ = '';
+    let industryF = 'all';
+    let starredF = 'all'; 
+
+    function stars(r) {
+        let h = '';
+        for(let i=1; i<=5; i++) {
+            h += i <= Math.round(r) ? '<i class="fa-solid fa-star star-on" style="font-size:0.75rem"></i>' : '<i class="fa-solid fa-star star-off" style="font-size:0.75rem"></i>';
+        }
+        return h;
+    }
+
+    function renderPage() {
+        let filtered = [...companies];
+        if (searchQ) {
+            var q = searchQ.toLowerCase();
+            filtered = filtered.filter(c => c.name.toLowerCase().includes(q) || c.industry.toLowerCase().includes(q) || c.location.toLowerCase().includes(q));
+        }
+        if (industryF !== 'all') filtered = filtered.filter(c => c.industry === industryF);
+        if (starredF === 'starred') filtered = filtered.filter(c => c.starred);
+
+        var industryOpts = industries.map(ind => `<option value="${ind}" ${industryF===ind?'selected':''}>${ind}</option>`).join('');
+
+        var cards = '';
+        if (filtered.length === 0) {
+            cards = `<div class="empty-state"><i class="fa-solid fa-building"></i>No companies found.</div>`;
+        } else {
+            cards = filtered.map(c => {
+                var appCount = apps.filter(a => a.company.toLowerCase() === c.name.toLowerCase()).length;
+                return `
+                <article class="company-card" onclick="showCompanyDetail('${c.name.replace(/'/g, "\\'")}')">
+                    <div class="card-header">
+                        <div class="card-icon">${c.name.charAt(0)}</div>
+                        <div class="header-actions" onclick="event.stopPropagation()">
+                            <button class="btn-star" onclick="toggleStar(event, '${c.name.replace(/'/g, "\\'")}')" title="${c.starred ? 'Unstar' : 'Star'} company">
+                                <i class="${c.starred ? 'fa-solid fa-star star-active' : 'fa-regular fa-star star-inactive'}"></i>
+                            </button>
+                            <span class="card-industry">${c.industry}</span>
+                        </div>
+                    </div>
+                    <h3 class="card-title">${c.name}</h3>
+                    <p class="card-location"><i class="fa-solid fa-location-dot" style="font-size:0.7rem"></i> ${c.location}</p>
+                    <p class="card-desc">${c.description}</p>
+                    <div class="card-footer">
+                        <div style="display:flex;align-items:center;gap:4px">${stars(c.rating)} <span style="margin-left:4px">${c.rating}</span></div>
+                        <div>
+                            <span class="card-stat"><i class="fa-solid fa-briefcase" style="font-size:0.65rem"></i> ${c.openPositions} open</span>
+                            <span class="card-stat"><i class="fa-solid fa-paper-plane" style="font-size:0.65rem"></i> ${appCount} applied</span>
+                        </div>
+                    </div>
+                </article>`;
+            }).join('');
+        }
+
+        document.getElementById('main-content').innerHTML = `
+            <div class="page-header">
+                <div>
+                    <h1>Companies</h1>
+                    <p>${companies.length} companies tracked &middot; ${filtered.length} shown</p>
+                </div>
+                <button onclick="showAddCompanyModal()" class="btn"><i class="fa-solid fa-plus"></i> Add Company</button>
+            </div>
+            <div class="filters">
+                <div class="input-group">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" id="search-input" placeholder="Search by name, industry, or location..." value="${searchQ}" oninput="searchQ=this.value; renderPage();">
+                </div>
+                <select onchange="industryF=this.value; renderPage();" style="max-width:180px;">
+                    <option value="all" ${industryF==='all'?'selected':''}>All Industries</option>
+                    ${industryOpts}
+                </select>
+                <select onchange="starredF=this.value; renderPage();" style="max-width:150px;">
+                    <option value="all" ${starredF==='all'?'selected':''}>All Companies</option>
+                    <option value="starred" ${starredF==='starred'?'selected':''}>⭐ Starred Only</option>
+                </select>
+            </div>
+            <div class="company-grid">${cards}</div>
+        `;
+
+        var si = document.getElementById('search-input');
+        if (si && searchQ) { si.focus(); si.setSelectionRange(si.value.length, si.value.length); }
+    }
+
+    /* Favoriting / Starring Toggle */
+    function toggleStar(e, name) {
+        if(e) e.stopPropagation();
+        const index = companies.findIndex(c => c.name === name);
+        if (index !== -1) {
+            companies[index].starred = !companies[index].starred;
+            localStorage.setItem('jt_companies', JSON.stringify(companies));
+            renderPage();
+            showToast(`${name} ${companies[index].starred ? 'starred' : 'unstarred'}`, 'success');
+        }
+    }
+
+    /* Modal control */
+    function openModal() { document.getElementById('modal-overlay').classList.add('show'); document.body.style.overflow = 'hidden'; }
+    function closeModal() { document.getElementById('modal-overlay').classList.remove('show'); document.body.style.overflow = ''; }
+    document.getElementById('modal-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    /* Company Detail Modal */
+    function showCompanyDetail(name) {
+        const company = companies.find(c => c.name === name);
+        if (!company) return;
+
+        // Retrieve current applications
+        apps = JSON.parse(localStorage.getItem('jt_applications') || '[]');
+        const companyApps = apps.filter(a => a.company.toLowerCase() === name.toLowerCase());
+
+        let appsList = '';
+        if (companyApps.length === 0) {
+            appsList = `<p style="color:var(--text-light);font-size:0.85rem;margin-top:0.5rem;font-style:italic">No applications sent to ${company.name} yet.</p>`;
+        } else {
+            appsList = `
+            <div style="margin-top:0.75rem;max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;background:rgba(3,7,18,0.2);">
+                <table style="width:100%;font-size:0.82rem;text-align:left;border-collapse:collapse;">
+                    <thead style="background:rgba(3,7,18,0.4);position:sticky;top:0;">
+                        <tr>
+                            <th style="padding:8px;font-size:0.7rem;border-bottom:1px solid var(--border);">Position</th>
+                            <th style="padding:8px;font-size:0.7rem;border-bottom:1px solid var(--border);">Status</th>
+                            <th style="padding:8px;font-size:0.7rem;border-bottom:1px solid var(--border);">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${companyApps.map(a => `
+                            <tr style="border-bottom:1px solid var(--border);">
+                                <td style="padding:8px;font-weight:600;">${a.position}</td>
+                                <td style="padding:8px;"><span class="badge badge-${a.status}">${a.status}</span></td>
+                                <td style="padding:8px;color:var(--text-light);">${new Date(a.date).toLocaleDateString('en-MY', { day:'numeric', month:'short' })}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+        }
+
+        document.getElementById('modal-content').innerHTML = `
+            <div class="modal-header">
+                <div style="display:flex;align-items:center;gap:10px">
+                    <div class="card-icon" style="width:2rem;height:2rem;font-size:0.85rem;border-radius:6px">${company.name.charAt(0)}</div>
+                    <h2 style="font-size:1.15rem">${company.name}</h2>
+                </div>
+                <button onclick="closeModal()" class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div style="margin-bottom:1rem;font-size:0.82rem;color:var(--text-light);display:flex;gap:12px">
+                <span><i class="fa-solid fa-industry" style="font-size:0.75rem;margin-right:4px;color:var(--primary)"></i>${company.industry}</span>
+                <span><i class="fa-solid fa-location-dot" style="font-size:0.75rem;margin-right:4px;color:var(--primary)"></i>${company.location}</span>
+            </div>
+
+            <p style="font-size:0.85rem;color:var(--text-light);line-height:1.5;margin-bottom:1.25rem;background:rgba(3,7,18,0.25);padding:10px 12px;border-radius:8px;border:1px solid var(--border);">${company.description}</p>
+
+            <div style="margin-bottom:1.25rem;">
+                <h3 style="font-size:0.875rem;font-weight:600;color:var(--text);margin-bottom:0.25rem">Applications (${companyApps.length})</h3>
+                ${appsList}
+            </div>
+
+            <!-- Inline Application addition -->
+            <div id="inline-app-section" style="margin-bottom:1.25rem;border-top:1px solid var(--border);padding-top:1rem;">
+                <button onclick="toggleInlineForm()" id="btn-toggle-inline" class="btn btn-outline" style="width:100%;justify-content:center;font-size:0.8rem;padding:7px"><i class="fa-solid fa-plus"></i> Add New Application here</button>
+                <div id="inline-app-form-container" style="display:none;margin-top:0.75rem;background:rgba(3,7,18,0.25);padding:12px;border-radius:8px;border:1px solid var(--border);">
+                    <h4 style="font-size:0.82rem;font-weight:600;margin-bottom:0.75rem;color:var(--text)">Apply to ${company.name}</h4>
+                    <form onsubmit="saveInlineApp(event, '${company.name.replace(/'/g, "\\'")}')">
+                        <div class="form-group" style="margin-bottom:8px">
+                            <label style="font-size:0.75rem;font-weight:600;display:block;margin-bottom:4px;color:var(--text-light)">Position Name *</label>
+                            <input type="text" id="inline-position" required placeholder="e.g. Frontend Developer" style="padding:6px 10px;font-size:0.8rem">
+                        </div>
+                        <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+                            <div class="form-group" style="margin-bottom:0">
+                                <label style="font-size:0.75rem;font-weight:600;display:block;margin-bottom:4px;color:var(--text-light)">Salary</label>
+                                <input type="text" id="inline-salary" placeholder="e.g. RM 6,500" style="padding:6px 10px;font-size:0.8rem">
+                            </div>
+                            <div class="form-group" style="margin-bottom:0">
+                                <label style="font-size:0.75rem;font-weight:600;display:block;margin-bottom:4px;color:var(--text-light)">Location *</label>
+                                <input type="text" id="inline-location" required value="${company.location}" style="padding:6px 10px;font-size:0.8rem">
+                            </div>
+                        </div>
+                        <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+                            <div class="form-group" style="margin-bottom:0">
+                                <label style="font-size:0.75rem;font-weight:600;display:block;margin-bottom:4px;color:var(--text-light)">Status</label>
+                                <select id="inline-status" style="padding:6px 10px;font-size:0.8rem">
+                                    <option>Applied</option>
+                                    <option>Interview</option>
+                                    <option>Offer</option>
+                                    <option>Rejected</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0">
+                                <label style="font-size:0.75rem;font-weight:600;display:block;margin-bottom:4px;color:var(--text-light)">Type</label>
+                                <select id="inline-type" style="padding:6px 10px;font-size:0.8rem">
+                                    <option>Full-time</option>
+                                    <option>Part-time</option>
+                                    <option>Contract</option>
+                                    <option>Internship</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:8px">
+                            <button type="submit" class="btn" style="flex:1;font-size:0.8rem;padding:6px;justify-content:center">Save</button>
+                            <button type="button" onclick="toggleInlineForm()" class="btn btn-outline" style="font-size:0.8rem;padding:6px">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:1rem;">
+                <div style="display:flex;align-items:center;gap:4px">
+                    ${stars(company.rating)} <span style="margin-left:4px;font-size:0.82rem;color:var(--text-light)">${company.rating}</span>
+                </div>
+                <button onclick="deleteCompany('${company.name.replace(/'/g, "\\'")}')" class="btn btn-danger" style="font-size:0.78rem;padding:6px 12px;gap:4px"><i class="fa-solid fa-trash" style="font-size:0.7rem"></i> Delete Company</button>
+            </div>
+        `;
+        openModal();
+    }
+
+    function toggleInlineForm() {
+        const container = document.getElementById('inline-app-form-container');
+        const btn = document.getElementById('btn-toggle-inline');
+        if (container.style.display === 'none') {
+            container.style.display = 'block';
+            btn.style.display = 'none';
+        } else {
+            container.style.display = 'none';
+            btn.style.display = 'flex';
+        }
+    }
+
+    function saveInlineApp(e, companyName) {
+        e.preventDefault();
+        const position = document.getElementById('inline-position').value.trim();
+        const salary = document.getElementById('inline-salary').value.trim() || 'Not specified';
+        const location = document.getElementById('inline-location').value.trim();
+        const status = document.getElementById('inline-status').value;
+        const type = document.getElementById('inline-type').value;
+        const date = new Date().toISOString().split('T')[0];
+
+        // Retrieve existing applications
+        apps = JSON.parse(localStorage.getItem('jt_applications') || '[]');
+        const nextId = apps.length > 0 ? Math.max(...apps.map(a => a.id)) + 1 : 1;
+
+        const newApp = {
+            id: nextId,
+            company: companyName,
+            position: position,
+            status: status,
+            date: date,
+            salary: salary,
+            location: location,
+            type: type,
+            source: 'Direct Application'
+        };
+
+        apps.unshift(newApp); 
+        localStorage.setItem('jt_applications', JSON.stringify(apps));
+        
+        closeModal();
+        renderPage();
+        showToast(`Added application to ${companyName}!`, 'success');
+    }
+
+    /* Company Modal and Logic */
+    function showAddCompanyModal() {
+        document.getElementById('modal-content').innerHTML = `
+            <div class="modal-header">
+                <h2>Add Company</h2>
+                <button onclick="closeModal()" class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="saveCompany(event)">
+                <div class="form-group">
+                    <label>Company Name *</label>
+                    <input type="text" id="add-comp-name" required placeholder="e.g. Google">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Industry *</label>
+                        <input type="text" id="add-comp-industry" required placeholder="e.g. Technology">
+                    </div>
+                    <div class="form-group">
+                        <label>Location *</label>
+                        <input type="text" id="add-comp-location" required placeholder="e.g. Kuala Lumpur">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Rating (1.0 - 5.0) *</label>
+                        <input type="number" id="add-comp-rating" required min="1" max="5" step="0.1" value="4.0">
+                    </div>
+                    <div class="form-group">
+                        <label>Open Positions *</label>
+                        <input type="number" id="add-comp-positions" required min="0" value="3">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description *</label>
+                    <textarea id="add-comp-desc" required placeholder="Brief description of the company..." style="width:100%;height:80px;resize:none;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius);background:rgba(15,23,42,0.4);color:var(--text);font-family:inherit;font-size:0.875rem;outline:none;transition:0.2s;"></textarea>
+                </div>
+                <button type="submit" class="btn" style="width:100%;justify-content:center;padding:11px"><i class="fa-solid fa-plus"></i> Add Company</button>
+            </form>
+        `;
+        openModal();
+    }
+
+    function saveCompany(e) {
+        e.preventDefault();
+        const name = document.getElementById('add-comp-name').value.trim();
+        const industry = document.getElementById('add-comp-industry').value.trim();
+        const location = document.getElementById('add-comp-location').value.trim();
+        const rating = parseFloat(document.getElementById('add-comp-rating').value) || 4.0;
+        const openPositions = parseInt(document.getElementById('add-comp-positions').value) || 0;
+        const description = document.getElementById('add-comp-desc').value.trim();
+
+        if (companies.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+            showToast('A company with this name already exists!', 'warning');
+            return;
+        }
+
+        const newComp = {
+            name: name,
+            industry: industry,
+            location: location,
+            rating: rating,
+            openPositions: openPositions,
+            description: description,
+            starred: false
+        };
+
+        companies.unshift(newComp);
+        localStorage.setItem('jt_companies', JSON.stringify(companies));
+
+        // Re-load industries filter dropdown items
+        if (!industries.includes(industry)) {
+            industries.push(industry);
+            industries.sort();
+        }
+
+        closeModal();
+        renderPage();
+        showToast(`Added ${name} to companies tracker!`, 'success');
+    }
+
+    /* Delete Company Logic */
+    function deleteCompany(name) {
+        if(confirm(`Are you sure you want to delete ${name} from your list of companies?`)) {
+            companies = companies.filter(c => c.name !== name);
+            localStorage.setItem('jt_companies', JSON.stringify(companies));
+            closeModal();
+            renderPage();
+            showToast(`Deleted ${name} from companies`, 'success');
+        }
+    }
+
+    /* Toast system */
+    function showToast(msg, type) {
+        var c = document.getElementById('toast-container');
+        var t = document.createElement('div');
+        t.className = 'toast toast-' + type;
+        t.innerHTML = msg;
+        c.appendChild(t);
+        setTimeout(() => { t.style.opacity='0'; t.style.transition='0.3s'; setTimeout(()=>t.remove(), 300); }, 3000);
+    }
+
+    function handleLogout() { localStorage.removeItem('jt_session'); window.location.href = 'index.html'; }
+
+    renderPage();
+    </script>
+</body>
+</html>
